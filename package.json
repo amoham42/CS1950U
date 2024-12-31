@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.8.0",
   "type": "module",
-  "homepage": "https://BrownCSCI1950U.github.io/",
+  "homepage": "https://amoham42.github.io/CS1950U/",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
