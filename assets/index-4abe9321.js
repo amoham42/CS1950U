@@ -3870,9 +3870,9 @@ void main() {
     #define formuparam 0.53
     #define volsteps 10
     #define stepsize 0.12
-    #define zoom 0.900
+    #define zoom 8.900
     #define tile 0.350
-    #define speed 0.001
+    #define speed 0.003
     #define brightness 0.002
     #define darkmatter 0.900
     #define distfading 0.750
