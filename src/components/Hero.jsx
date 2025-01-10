@@ -2,10 +2,10 @@ import React from "react";
 import { motion } from "framer-motion";
 import SplineScene from "./SplineScene";
 
-const Hero = ({transition, onSky}) => {
+const Hero = ({transition, onSky, onHome, value}) => {
   return (
     <section className={`relative w-full h-screen mx-auto`}>
-      <SplineScene transition={transition} onSky={onSky} />
+      <SplineScene transition={transition} onSky={onSky} onHome={onHome} value={value} />
 
       
       <div className='absolute xs:bottom-10 bottom-32 w-full flex justify-center items-center'>

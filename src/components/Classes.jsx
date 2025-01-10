@@ -1,14 +1,12 @@
 import React from "react";
-import { motion } from "framer-motion";
 import { styles } from "../styles";
-import { SectionWrapper } from "../hoc";
-import { fadeIn, textVariant } from "../utils/motion";
 import Table from "./Table";
 import { lectures } from "../constants/lectures";
 
-const Classes = ({onChange, onSky}) => {
+const Classes = ({onChange, onSky, onHome}) => {
   onChange(true);
   onSky(true);
+  onHome(false);
   return (
     <div
     className={` absolute top-0 left-0 h-screen w-screen z-0 no-scrollbar transition-transform duration-400`}
@@ -16,9 +14,9 @@ const Classes = ({onChange, onSky}) => {
 
       <div className=" mx-[20%] relative overflow-y-auto no-scrollbar h-full z-10">
       <section className="mt-[10%] mb-[10%] flex flex-col gap-10 no-scrollbar z-20">
-      <motion.div variants={textVariant()}>
+      <div>
         <h2 className={styles.titleHeadText}>Classes</h2>
-      </motion.div>
+      </div>
 
       <p>
       Classes will meet in person in CIT room 506. We recommend taking a look at the code demos accompanying each lecture to see how to implement C++ tips. 

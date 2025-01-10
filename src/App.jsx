@@ -8,8 +8,10 @@ const App = () => {
   const [showAbout, setShowAbout] = useState(false);
   const [showTitle, setShowTitle] = useState(false);
   const [onSky, setOnSky] = useState(false);
+  const [onHome, setOnHome] = useState(true);
+  const [rotationValue, setRotationValue] = useState(0);
   const [audioEnabled, setAudioEnabled] = useState(false);
-  const audioRef = useState(new Audio("../fire.mp3"))[0];
+  const audioRef = useState(new Audio("/CS1950U/fire.mp3"))[0];
 
   const [currentOverlay, setCurrentOverlay] = useState("Home");
 
@@ -23,6 +25,10 @@ const App = () => {
 
   const handleOnSky = (value) => {
     setOnSky(value);
+  };
+
+  const handleOnHome = (value) => {
+    setOnHome(value);
   };
   const handleAudio = (value) => {
     setAudioEnabled(value);
@@ -45,7 +51,7 @@ const App = () => {
   const handleWheel = (event) => {
     setScrollValue((prev) => {
       const newValue = prev + (event.deltaY > 0 ? 1 : -1);
-      const clampedValue = Math.min(5, Math.max(newValue, -5));
+      const clampedValue = Math.min(15, Math.max(newValue, -5));
       if (clampedValue < 0) {
         setShowAbout(false);
         setShowTitle(false);
@@ -53,7 +59,7 @@ const App = () => {
         setShowAbout(true);
         setShowTitle(true);
       }
-
+      setRotationValue(clampedValue);
       return clampedValue;
     });
   };
@@ -65,20 +71,18 @@ const App = () => {
     };
   }, []);
 
-
-
   return (
     <BrowserRouter>
       <div className="relative z-0 bg-primary">
         <Navbar onOverlaySelect={handleShowOverlay} setAudio={handleAudio} audio={audioEnabled}/>
         <div className="relative h-screen">
-          <Hero transition={showTitle} onSky={onSky} />
+          <Hero transition={showTitle} onSky={onSky} onHome={onHome} value={rotationValue}/>
         </div>
-            {currentOverlay === "Home" && <About showAbout={showAbout} onSky={handleOnSky} />}
-            {currentOverlay === "Classes" && <Classes onChange={handleShowTitle} onSky={handleOnSky}/>}
-            {currentOverlay === "Assignments" && <Assignments onChange={handleShowTitle} onSky={handleOnSky}/>}
-            {currentOverlay === "Resources" && <Resources onChange={handleShowTitle} onSky={handleOnSky}/>}
-            {currentOverlay === "Labs" && <Labs onChange={handleShowTitle} onSky={handleOnSky}/>}
+            {currentOverlay === "Home" && <About showAbout={showAbout} onSky={handleOnSky} onHome={handleOnHome} />}
+            {currentOverlay === "Classes" && <Classes onChange={handleShowTitle} onSky={handleOnSky}  onHome={handleOnHome}/>}
+            {currentOverlay === "Assignments" && <Assignments onChange={handleShowTitle} onSky={handleOnSky} onHome={handleOnHome}/>}
+            {currentOverlay === "Resources" && <Resources onChange={handleShowTitle} onSky={handleOnSky} onHome={handleOnHome}/>}
+            {currentOverlay === "Labs" && <Labs onChange={handleShowTitle} onSky={handleOnSky} onHome={handleOnHome}/>}
       </div>
     </BrowserRouter>
   );

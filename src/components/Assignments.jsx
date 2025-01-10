@@ -1,14 +1,13 @@
 import React from "react";
-import { motion } from "framer-motion";
 import { styles } from "../styles";
-import { SectionWrapper } from "../hoc";
-import { fadeIn, textVariant } from "../utils/motion";
 import Table from "./Table";
 import { projects } from "../constants/projects";
 
-const Assignments = ({onChange, onSky}) => {
+const Assignments = ({onChange, onSky, onHome}) => {
   onChange(true);
   onSky(true);
+  onHome(false);
+
   return (
     <div
     className={`absolute top-0 left-0 h-screen w-screen z-0 no-scrollbar`}
@@ -17,9 +16,9 @@ const Assignments = ({onChange, onSky}) => {
       <div className=" mx-[20%] relative overflow-y-auto no-scrollbar h-full z-10">
       <section className="mt-[10%] mb-[10%] flex flex-col gap-2 no-scrollbar z-20">
 
-      <motion.div variants={textVariant()}>
+      <div>
         <h2 className={styles.titleHeadText}>Assignments</h2>
-      </motion.div>
+      </div>
 
       <p>All assignments (except for the final) are due at 3pm of the day listed and will be checked for completion in person. </p>
       <br></br>

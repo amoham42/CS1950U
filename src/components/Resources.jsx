@@ -1,13 +1,12 @@
 import React from "react";
-import { SectionWrapper } from "../hoc";
-import { motion } from "framer-motion";
 import { styles } from "../styles";
-import { fadeIn, textVariant } from "../utils/motion";
 import { sections } from "../constants/resources";
 
-const Resources = ({onChange, onSky}) => {
+const Resources = ({onChange, onSky, onHome}) => {
   onChange(true);
   onSky(true);
+  onHome(false);
+
   return (
     <div
     className={` absolute top-0 left-0 h-screen w-screen z-0 no-scrollbar transition-transform duration-400`}
@@ -16,9 +15,9 @@ const Resources = ({onChange, onSky}) => {
       <div className=" mx-[20%] relative overflow-y-auto no-scrollbar h-full z-10">
       <section className="mt-[10%] mb-[10%] flex flex-col gap-10 no-scrollbar z-20">
       <section id="resources" className="flex flex-col gap-10">
-      <motion.div variants={textVariant()}>
+      <div>
         <h2 className={styles.titleHeadText}>Resources</h2>
-      </motion.div>
+      </div>
       <div className="flex flex-col flex-wrap gap-4 md:flex-row">
         {sections.map((section, index) => (
           <div key={index}>

@@ -1,9 +1,8 @@
 import React from "react";
-import { SectionWrapper } from "../hoc";
-import { styles } from "../styles";
 
-const About = ({showAbout, onSky}) => {
+const About = ({showAbout, onSky, onHome}) => {
   onSky(false);
+  onHome(true);
   return (
     <div
           className={` absolute top-0 left-0 w-1/2 h-screen z-0 no-scrollbar transition-transform duration-400 ${
@@ -97,7 +96,7 @@ const About = ({showAbout, onSky}) => {
           <div className="flex flex-col gap-2 p-16 pb-0">
             <h3 className="text-2xl font-medium">Professor</h3>
             <div className="frosted flex flex-col rounded-lg bg-[#00ccff]">
-              <img className="aspect-square w-full rounded-t-lg object-contain" src="../Daniel_Ritchie.jpg" alt="Daniel Ritchie"></img>
+              <img className="aspect-square w-full rounded-t-lg object-contain" src="/CS1950U/Daniel_Ritchie.jpg" alt="Daniel Ritchie"></img>
               <div className="p-4">
                 <div className="text-md font-medium">Daniel Ritchie</div>
                 <div className="text-sm font-semibold text-slate-600">dritchi • he/him</div>
@@ -110,7 +109,7 @@ const About = ({showAbout, onSky}) => {
           <div className="flex flex-col gap-2 p-16 pb-0">
             <h3 className="text-2xl font-medium">Head TA</h3>
             <div className="frosted flex flex-col rounded-lg bg-[#00ccff]">
-              <img className="aspect-square w-full rounded-t-lg object-contain" src="../Arman.png" alt="Arman Mohammadi"></img>
+              <img className="aspect-square w-full rounded-t-lg object-contain" src="" alt="Arman Mohammadi"></img>
               <div className="p-4">
                 <div className="text-md font-medium">Arman Mohammadi</div>
                 <div className="text-sm font-semibold text-slate-600">amoham42 • he/him</div>
@@ -125,7 +124,7 @@ const About = ({showAbout, onSky}) => {
           <div className="flex flex-col gap-2 p-16 pb-0">
             <h3 className="text-2xl font-medium">Head TA</h3>
             <div className="frosted flex flex-col rounded-lg bg-[#00ccff]">
-              <img className="aspect-square w-full rounded-t-lg object-contain" src="../Feiyue.png" alt="Feiyue Zhang"></img>
+              <img className="aspect-square w-full rounded-t-lg object-contain" src="/CS1950U/Feiyue.png" alt="Feiyue Zhang"></img>
               <div className="p-4">
                 <div className="text-md font-medium">Feiyue Zhang</div>
                 <div className="text-sm font-semibold text-slate-600">fzhang50 • he/him</div>
