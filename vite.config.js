@@ -9,9 +9,9 @@ export default defineConfig({
   base: '/CS1950U/',
   build: {
     rollupOptions: {
+      external: ['three'],
       output: {
         manualChunks: {
-          spline: ['@splinetool/react-spline', '@splinetool/runtime'],
           react: ['react', 'react-dom'],
         },
       },
