@@ -9,7 +9,11 @@ export default defineConfig({
   base: '/CS1950U/',
   build: {
     rollupOptions: {
-      external: ['three'],
+      external: [
+        'three', 
+        'three/examples/jsm/loaders/GLTFLoader', 
+        'three/src/loaders/TextureLoader',
+        'noisejs'],
       output: {
         manualChunks: {
           react: ['react', 'react-dom'],
