@@ -1,6 +1,15 @@
 import { BrowserRouter } from "react-router-dom";
 import { About, Hero, Classes, Assignments, Resources, Labs, Navbar } from "./components";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { navLinks } from "./constants";
+
+const BASE_URL = import.meta.env.BASE_URL;
+
+// Restore the open page when the site is loaded on a deep link such as /CS1950U/labs.
+const getInitialOverlay = () => {
+  const path = "/" + window.location.pathname.slice(BASE_URL.length).replace(/\/+$/, "");
+  return navLinks.find((nav) => nav.path === path)?.title ?? "Home";
+};
 
 
 const App = () => {
@@ -11,9 +20,15 @@ const App = () => {
   const [onHome, setOnHome] = useState(true);
   const [rotationValue, setRotationValue] = useState(0);
   const [audioEnabled, setAudioEnabled] = useState(false);
-  const audioRef = useState(new Audio("/CS1950U/fire.mp3"))[0];
+  // Created lazily on first use: the 4.5 MB campfire track is only fetched if the visitor turns
+  // sound on (previously a new Audio element was constructed on every render).
+  const audioElement = useRef(null);
+  const getAudio = () => {
+    audioElement.current ??= new Audio(`${BASE_URL}fire.mp3`);
+    return audioElement.current;
+  };
 
-  const [currentOverlay, setCurrentOverlay] = useState("Home");
+  const [currentOverlay, setCurrentOverlay] = useState(getInitialOverlay);
 
   const handleShowOverlay = (componentName) => {
     setCurrentOverlay(componentName);
@@ -32,6 +47,7 @@ const App = () => {
   };
   const handleAudio = (value) => {
     setAudioEnabled(value);
+    const audioRef = getAudio();
     if(value){
       audioRef.loop = true;
     audioRef.play()
@@ -72,9 +88,9 @@ const App = () => {
   }, []);
 
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={BASE_URL} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <div className="relative z-0 bg-primary">
-        <Navbar onOverlaySelect={handleShowOverlay} setAudio={handleAudio} audio={audioEnabled}/>
+        <Navbar initialActive={currentOverlay} onOverlaySelect={handleShowOverlay} setAudio={handleAudio} audio={audioEnabled}/>
         <div className="relative h-screen">
           <Hero transition={showTitle} onSky={onSky} onHome={onHome} value={rotationValue}/>
         </div>
