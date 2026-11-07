@@ -1,9 +1,31 @@
 import * as THREE from "three";
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-import { TextureLoader } from 'three/src/loaders/TextureLoader';
 import { ParticleSystem, ParticleProps3D, ParticleEmitter } from './particleSystem.js';
 
-import Stats from "stats.js";
+const BASE_URL = import.meta.env.BASE_URL;
+
+// Never let a single frame advance the simulation by more than this (seconds).
+// Prevents particles from teleporting after the tab was hidden or the main thread stalled.
+const MAX_FRAME_DELTA = 1 / 20;
+
+// The FPS overlay is a development aid: show it in `npm run dev`, or in production with `?debug`.
+const isDebug = () =>
+  import.meta.env.DEV || new URLSearchParams(window.location.search).has('debug');
+
+// Five-step toon ramp (identical to three.js' examples/textures/gradientMaps/fiveTone.jpg),
+// generated in code so the scene does not depend on hot-linking threejs.org.
+const createFiveToneGradient = () => {
+  const steps = [0, 64, 128, 191, 255];
+  const data = new Uint8Array(steps.length * 4);
+  steps.forEach((v, i) => data.set([v, v, v, 255], i * 4));
+  const texture = new THREE.DataTexture(data, steps.length, 1, THREE.RGBAFormat);
+  texture.minFilter = THREE.NearestFilter;
+  texture.magFilter = THREE.NearestFilter;
+  texture.needsUpdate = true;
+  return texture;
+};
+
+const _forceDirection = new THREE.Vector3();
 
 const createGround = (scene) => {
   const ground = new THREE.PlaneGeometry(100, 100, 1, 1);
@@ -35,7 +57,7 @@ function updateParticleForces(sphere, particles, delta) {
     
     const distance = distanceTo(spherePosition, particlePosition);
     if (distance < sphereRadius) {
-      const direction = new THREE.Vector3()
+      const direction = _forceDirection
         .subVectors(particlePosition, spherePosition)
         .normalize();
 
@@ -46,7 +68,7 @@ function updateParticleForces(sphere, particles, delta) {
   }
 };
 
-export const initializeScene = (mountRef, cameraRef, lightRef) => {
+export const initializeScene = (mountRef, cameraRef) => {
   let animationFrameId;
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.3, 100);
@@ -55,7 +77,8 @@ export const initializeScene = (mountRef, cameraRef, lightRef) => {
   camera.lookAt(0, 1, 0);
   const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setPixelRatio(window.devicePixelRatio);
+  // Cap DPR: 3x phones would otherwise render 9x the pixels for no visible gain.
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   mountRef.current.appendChild(renderer.domElement);
 
 renderer.shadowMap.enabled = true;
@@ -63,15 +86,23 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.toneMapping = THREE.CineonToneMapping;
 renderer.toneMappingExposure = 1;
 
-const stats = new Stats();
-stats.showPanel(0);
-document.body.appendChild(stats.dom);
+let stats = null;
+let disposed = false;
+if (isDebug()) {
+  import('stats.js').then(({ default: Stats }) => {
+    if (disposed) return;
+    stats = new Stats();
+    stats.showPanel(0);
+    document.body.appendChild(stats.dom);
+  });
+}
 
 const handleResize = () => {
   const { innerWidth, innerHeight } = window;
   camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight);
+  shaderMaterial.uniforms.iResolution.value.set(innerWidth, innerHeight, 1);
 };
 
 
@@ -188,8 +219,6 @@ const shaderMaterial = new THREE.ShaderMaterial(backgroundShader);
 const backgroundPlane = new THREE.PlaneGeometry(2, 2);
 const backgroundMesh = new THREE.Mesh(backgroundPlane, shaderMaterial);
 backgroundMesh.position.z = -6;
-const backgroundScene = new THREE.Scene();
-const backgroundCamera = new THREE.Camera();
 backgroundMesh.material.depthTest = true;
 backgroundMesh.material.depthWrite = false;
 scene.add(backgroundMesh);
@@ -197,7 +226,6 @@ scene.add(backgroundMesh);
 
 window.addEventListener("resize", handleResize);
 const loader = new GLTFLoader();
-const textureLoader = new TextureLoader();
 const pointLight = new THREE.PointLight(0xCD6605, 20, 6, 1);
 pointLight.shadow.mapSize.width = 1024;
 pointLight.shadow.mapSize.height = 1024;
@@ -209,27 +237,15 @@ pointLight.position.set(0, 0.4, -0.1);
 pointLight.shadow.radius = 25;
 scene.add(pointLight);
 
-const gradientMaps = ( function () {
-
-  const threeTone = textureLoader.load( 'https://threejs.org/examples/textures/gradientMaps/threeTone.jpg' );
-  threeTone.minFilter = THREE.NearestFilter;
-  threeTone.magFilter = THREE.NearestFilter;
-
-  const fiveTone = textureLoader.load( 'https://threejs.org/examples/textures/gradientMaps/fiveTone.jpg' );
-  fiveTone.minFilter = THREE.NearestFilter;
-  fiveTone.magFilter = THREE.NearestFilter;
-
-  return {
-    none: null,
-    threeTone: threeTone,
-    fiveTone: fiveTone
-  };
-
-} )();
+const gradientMaps = {
+  none: null,
+  fiveTone: createFiveToneGradient(),
+};
 
 loader.load(
-  'sceneglb.glb',
+  `${BASE_URL}sceneglb.glb`,
   (gltf) => {
+    if (disposed) return; // scene was torn down while the model was downloading
     gltf.scene.traverse((node) => {
       if (node.isMesh) {
         node.receiveShadow = true;
@@ -272,9 +288,7 @@ loader.load(
 
     scene.add(gltf.scene);
   },
-  (xhr) => {
-    console.log(`Loading progress: ${(xhr.loaded / xhr.total) * 100}%`);
-  },
+  undefined,
   (error) => {
     console.error('An error occurred:', error);
   }
@@ -341,14 +355,13 @@ scene.add(sphere);
 
   const animate = () => {
     animationFrameId = requestAnimationFrame(animate);
-    stats.begin();
+    stats?.begin();
 
     const currentTime = performance.now();
-  const delta = (currentTime - prevTime) * 0.001;
+  const delta = Math.min((currentTime - prevTime) * 0.001, MAX_FRAME_DELTA);
   prevTime = currentTime;
     
-    shaderMaterial.uniforms.iTime.value = performance.now() * 0.001;
-  shaderMaterial.uniforms.iResolution.value.set(window.innerWidth, window.innerHeight, 1);
+    shaderMaterial.uniforms.iTime.value = currentTime * 0.001;
   raycaster.setFromCamera( pointer, camera );
   const intersects = raycaster.intersectObjects(scene.children, true);
   const fIntersects = intersects.filter(intersect => intersect.distance > 2);
@@ -373,17 +386,35 @@ scene.add(sphere);
   particleSystem.update(delta);
   particleSystem1.update(delta);
 
-  stats.end();
+  stats?.end();
   
   };
   animate();
 
+  // requestAnimationFrame already stops while the tab is hidden; restart the clock on return
+  // so the first visible frame does not see a multi-second delta.
+  const handleVisibilityChange = () => {
+    if (!document.hidden) prevTime = performance.now();
+  };
+  document.addEventListener('visibilitychange', handleVisibilityChange);
+
   const cleanup = () => {
+    disposed = true;
     cancelAnimationFrame(animationFrameId);
+    window.removeEventListener('resize', handleResize);
+    document.removeEventListener('mousemove', onMouseMove);
+    document.removeEventListener('visibilitychange', handleVisibilityChange);
+    stats?.dom.remove();
+    particleSystem.dispose();
+    particleSystem1.dispose();
+    scene.traverse((object) => {
+      object.geometry?.dispose();
+      const materials = Array.isArray(object.material) ? object.material : [object.material];
+      materials.forEach((material) => material?.dispose());
+    });
+    gradientMaps.fiveTone.dispose();
     renderer.dispose();
-    if (mountRef.current) {
-      mountRef.current.removeChild(renderer.domElement);
-    }
+    renderer.domElement.remove();
   };
 
   return cleanup;

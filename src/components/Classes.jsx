@@ -1,12 +1,15 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { styles } from "../styles";
 import Table from "./Table";
 import { lectures } from "../constants/lectures";
 
 const Classes = ({onChange, onSky, onHome}) => {
-  onChange(true);
-  onSky(true);
-  onHome(false);
+  // Notify the parent after render (calling parent setters during render triggers React warnings).
+  useEffect(() => {
+    onChange(true);
+    onSky(true);
+    onHome(false);
+  }, [onChange, onSky, onHome]);
   return (
     <div
     className={` absolute top-0 left-0 h-screen w-screen z-0 no-scrollbar transition-transform duration-400`}
