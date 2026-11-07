@@ -4,8 +4,8 @@ import { styles } from "../styles";
 import { navLinks } from "../constants";
 import { menu, close } from "../assets";
 
-const Navbar = ({onOverlaySelect, setAudio, audio}) => {
-  const [active, setActive] = useState("Home");
+const Navbar = ({initialActive = "Home", onOverlaySelect, setAudio, audio}) => {
+  const [active, setActive] = useState(initialActive);
   const [toggle, setToggle] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -33,7 +33,8 @@ const Navbar = ({onOverlaySelect, setAudio, audio}) => {
           to='/'
           className='flex items-center gap-2'
           onClick={() => {
-            setActive("");
+            setActive("Home");
+            onOverlaySelect("Home");
             window.scrollTo(0, 0);
           }}
         >
@@ -54,6 +55,9 @@ const Navbar = ({onOverlaySelect, setAudio, audio}) => {
   strokeLinejoin="round" 
   className={`cursor-pointer ${audio ? "text-[#00CCFF]" : "text-white"}`} 
   onClick={() => setAudio(!audio)}
+  role="button"
+  aria-label={audio ? "Mute campfire sound" : "Play campfire sound"}
+  aria-pressed={audio}
 >
   <path d="M2 10v3"/>
   <path d="M6 6v11"/>

@@ -1,11 +1,14 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { styles } from "../styles";
 import { sections } from "../constants/resources";
 
 const Resources = ({onChange, onSky, onHome}) => {
-  onChange(true);
-  onSky(true);
-  onHome(false);
+  // Notify the parent after render (calling parent setters during render triggers React warnings).
+  useEffect(() => {
+    onChange(true);
+    onSky(true);
+    onHome(false);
+  }, [onChange, onSky, onHome]);
 
   return (
     <div

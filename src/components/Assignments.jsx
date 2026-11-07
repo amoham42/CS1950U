@@ -1,12 +1,15 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { styles } from "../styles";
 import Table from "./Table";
 import { projects } from "../constants/projects";
 
 const Assignments = ({onChange, onSky, onHome}) => {
-  onChange(true);
-  onSky(true);
-  onHome(false);
+  // Notify the parent after render (calling parent setters during render triggers React warnings).
+  useEffect(() => {
+    onChange(true);
+    onSky(true);
+    onHome(false);
+  }, [onChange, onSky, onHome]);
 
   return (
     <div
