@@ -3,6 +3,15 @@ import { Noise } from 'noisejs';
 
 var noise = new Noise();
 
+// One particle texture shared by every emitter instead of one network request per ParticleProps3D.
+let dustTexture = null;
+const getDustTexture = () => {
+  dustTexture ??= new THREE.TextureLoader().load(`${import.meta.env.BASE_URL}pt_dust.png`);
+  return dustTexture;
+};
+
+const _curl = new THREE.Vector3();
+
 function normalize(v) {
     const length = Math.hypot(v[0], v[1], v[2]) || 1e-8;
     return [v[0] / length, v[1] / length, v[2] / length];
@@ -124,7 +133,7 @@ export class ParticleProps3D {
         this.image = new THREE.Sprite(
             new THREE.SpriteMaterial(
                 {
-                    map: new THREE.TextureLoader().load('pt_dust.png'),
+                    map: getDustTexture(),
                     color: 0xffffff,
                 }
             )
@@ -194,14 +203,23 @@ export class ParticleSystem {
         particle.sizeFade = props3D.sizeFade; 
         particle.rotationSpeed.copy(props3D.rotation);
 
-        particle.mesh = new THREE.Sprite(props3D.image.material.clone());
+        // Each pooled particle owns a single sprite/material for its whole life. Previously a new
+        // Sprite + cloned material was allocated per emit, and when the pool wrapped around onto a
+        // still-active particle (frame rates above poolSize / lifeTime, e.g. 240 Hz displays) the
+        // old sprite was never removed from the scene and accumulated forever.
+        if (!particle.mesh) {
+          particle.mesh = new THREE.Sprite(props3D.image.material.clone());
+        } else {
+          particle.mesh.material.map = props3D.image.material.map;
+          particle.mesh.material.rotation = 0;
+        }
         particle.mesh.position.copy(props3D.particleEmitter.getRandomPoint());
         particle.mesh.material.color.copy(particle.colorA);
         particle.mesh.material.opacity = 1.0;
-        particle.mesh.scale.set(particle.size);
+        particle.mesh.scale.setScalar(particle.size);
         particle.mesh.visible = true;
         
-        this.scene.add(particle.mesh);
+        if (!particle.mesh.parent) this.scene.add(particle.mesh);
         this.poolIndex = (this.poolIndex - 1 + this.poolSize) % this.poolSize;
       }
     
@@ -231,7 +249,7 @@ export class ParticleSystem {
             p.mesh.position.z * p.noise.scale
             );
 
-            const curlVec = new THREE.Vector3(curlVecArr[0], curlVecArr[1], curlVecArr[2]);
+            const curlVec = _curl.set(curlVecArr[0], curlVecArr[1], curlVecArr[2]);
             curlVec.multiplyScalar(p.noise.randomnessScale * variationFactor);
             p.velocity.addScaledVector(curlVec, delta / massFactor);
             p.mesh.material.rotation += p.noise.randomnessRotation * delta * variationFactor;
@@ -257,6 +275,16 @@ export class ParticleSystem {
           }
           p.mesh.scale.set(finalSize, finalSize, finalSize);
           p.mesh.material.rotation += p.rotationSpeed.z * delta;
+        }
+      }
+
+      dispose() {
+        for (const p of this.particles) {
+          if (!p.mesh) continue;
+          this.scene.remove(p.mesh);
+          p.mesh.material.dispose();
+          p.mesh = null;
+          p.active = false;
         }
       }
 }

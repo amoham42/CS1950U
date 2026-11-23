@@ -1,8 +1,38 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+
+const BASE_URL = import.meta.env.BASE_URL;
+
+// Staff headshot with a lazy load and an initials placeholder when no photo is available.
+const StaffPhoto = ({ src, name }) => {
+  const [failed, setFailed] = useState(!src);
+  if (failed) {
+    const initials = name.split(" ").map((part) => part[0]).join("");
+    return (
+      <div className="aspect-square w-full rounded-t-lg bg-black/40 flex items-center justify-center text-6xl font-semibold text-white" role="img" aria-label={name}>
+        {initials}
+      </div>
+    );
+  }
+  return (
+    <img
+      className="aspect-square w-full rounded-t-lg object-contain"
+      src={src}
+      alt={name}
+      width="800"
+      height="800"
+      loading="lazy"
+      decoding="async"
+      onError={() => setFailed(true)}
+    />
+  );
+};
 
 const About = ({showAbout, onSky, onHome}) => {
-  onSky(false);
-  onHome(true);
+  // Notify the parent after render (calling parent setters during render triggers React warnings).
+  useEffect(() => {
+    onSky(false);
+    onHome(true);
+  }, [onSky, onHome]);
   return (
     <div
           className={` absolute top-0 left-0 w-1/2 h-screen z-0 no-scrollbar transition-transform duration-400 ${
@@ -72,6 +102,7 @@ const About = ({showAbout, onSky, onHome}) => {
           src="https://calendar.google.com/calendar/embed?src=c_59db87f33e0fef48a0c38c789cb97a8687472d305887dc36092b45f82b95375a%40group.calendar.google.com&ctz=America%2FNew_York" 
           style={{width: "130vh", height: "100vh", maxHeight:"400px", borderRadius: "10px"}} 
           title="Google Calendar"
+          loading="lazy"
         ></iframe>      
       </div>
 
@@ -96,7 +127,7 @@ const About = ({showAbout, onSky, onHome}) => {
           <div className="flex flex-col gap-2 p-16 pb-0">
             <h3 className="text-2xl font-medium">Professor</h3>
             <div className="frosted flex flex-col rounded-lg bg-[#00ccff]">
-              <img className="aspect-square w-full rounded-t-lg object-contain" src="/CS1950U/Daniel_Ritchie.jpg" alt="Daniel Ritchie"></img>
+              <StaffPhoto src={`${BASE_URL}Daniel_Ritchie.webp`} name="Daniel Ritchie" />
               <div className="p-4">
                 <div className="text-md font-medium">Daniel Ritchie</div>
                 <div className="text-sm font-semibold text-slate-600">dritchi • he/him</div>
@@ -109,7 +140,7 @@ const About = ({showAbout, onSky, onHome}) => {
           <div className="flex flex-col gap-2 p-16 pb-0">
             <h3 className="text-2xl font-medium">Head TA</h3>
             <div className="frosted flex flex-col rounded-lg bg-[#00ccff]">
-              <img className="aspect-square w-full rounded-t-lg object-contain" src="" alt="Arman Mohammadi"></img>
+              <StaffPhoto src={`${BASE_URL}Arman.webp`} name="Arman Mohammadi" />
               <div className="p-4">
                 <div className="text-md font-medium">Arman Mohammadi</div>
                 <div className="text-sm font-semibold text-slate-600">amoham42 • he/him</div>
@@ -124,7 +155,7 @@ const About = ({showAbout, onSky, onHome}) => {
           <div className="flex flex-col gap-2 p-16 pb-0">
             <h3 className="text-2xl font-medium">Head TA</h3>
             <div className="frosted flex flex-col rounded-lg bg-[#00ccff]">
-              <img className="aspect-square w-full rounded-t-lg object-contain" src="/CS1950U/Feiyue.png" alt="Feiyue Zhang"></img>
+              <StaffPhoto src={null} name="Feiyue Zhang" />
               <div className="p-4">
                 <div className="text-md font-medium">Feiyue Zhang</div>
                 <div className="text-sm font-semibold text-slate-600">fzhang50 • he/him</div>
